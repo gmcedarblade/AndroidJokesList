@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         addJokeLayout.setOrientation(LinearLayout.HORIZONTAL);
 
         addJokeButton = new Button(this);
-        addJokeButton.setText("Add Joke");
+        addJokeButton.setText(R.string.add_joke);
         addJokeButton.setTextColor(Color.WHITE);
         addJokeButton.setBackgroundColor(Color.DKGRAY);
         addJokeLayout.addView(addJokeButton);
