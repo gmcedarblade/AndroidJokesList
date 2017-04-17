@@ -1,21 +1,15 @@
 package edu.cvtc.android.jokelist;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.hardware.input.InputManager;
-import android.support.v4.view.ViewGroupCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -29,12 +23,12 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Layout container for a Joke.
      */
-    private LinearLayout jokeLayout;
+    private ListView jokeListView;
 
     /**
-     * ScrollView used to hold the Jokes in jokeList.
+     * Adapter for jokeLayout.
      */
-    private ScrollView jokeScrollView;
+    private JokeListAdapter jokeListAdapter;
 
     /**
      * EditText used to enter text for new Joke to be added to jokeList.
@@ -51,15 +45,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        // initialize the layout
         initLayout();
+
+        jokeListAdapter = new JokeListAdapter(this, jokeList);
 
         final String[] jokes = getResources().getStringArray(R.array.jokeList);
         for (final String jokeText : jokes) {
 
-            addJoke(jokeText);
+            addJoke(new Joke(jokeText));
 
         }
 
+        // initialize the event listeners
         initListeners();
 
     }
@@ -70,37 +69,13 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initLayout() {
 
-        final LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
+        setContentView(R.layout.activity_main);
 
-        final LinearLayout addJokeLayout = new LinearLayout(this);
-        addJokeLayout.setOrientation(LinearLayout.HORIZONTAL);
+        addJokeButton = (Button) findViewById(R.id.addJokeButton);
+        jokeEditText = (EditText) findViewById(R.id.jokeEditText);
 
-        addJokeButton = new Button(this);
-        addJokeButton.setText(R.string.add_joke);
-        addJokeButton.setTextColor(Color.WHITE);
-        addJokeButton.setBackgroundColor(Color.DKGRAY);
-        addJokeLayout.addView(addJokeButton);
-
-        // Create our LayoutParams for EditText
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        jokeEditText = new EditText(this);
-        jokeEditText.setLayoutParams(params);
-        addJokeLayout.addView(jokeEditText);
-
-        jokeLayout = new LinearLayout(this);
-        jokeLayout.setOrientation(LinearLayout.VERTICAL);
-
-        jokeScrollView = new ScrollView(this);
-        jokeScrollView.addView(jokeLayout);
-
-        container.addView(addJokeLayout);
-        container.addView(jokeScrollView);
-
-        setContentView(container);
+        jokeListView = (ListView) findViewById(R.id.jokeListViewGroup);
+        jokeListView.setAdapter(jokeListAdapter);
 
     }
 
@@ -144,11 +119,15 @@ public class MainActivity extends AppCompatActivity {
     private void addJokeFromEditText() {
 
         final String jokeText = jokeEditText.getText().toString().trim();
-        addJoke(jokeText);
-        jokeEditText.setText("");
-
-        hideSoftKeyboard();
         
+        if (null != jokeText && !jokeText.isEmpty()) {
+            addJoke(new Joke(jokeText));
+            jokeEditText.setText("");
+
+            hideSoftKeyboard();
+        } else {
+            Toast.makeText(this, "You must enter text for new Joke...", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void hideSoftKeyboard() {
@@ -164,34 +143,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Method used to provide the logic for initializing a new Joke,
-     * adding it to jokeList, and displaying it on screen.
+     * Method used for encapsulating the logic necessary to properly
+     * add a new Joke to jokeList, and display it on screen.
      *
-     * @param jokeText a String containing the text of the Joke to add.
+     * @param joke The Joke to add to the list of Jokes.
      */
-    private void addJoke(final String jokeText) {
+    private void addJoke(final Joke joke) {
 
-        if (null != jokeText && !jokeText.isEmpty()) {
-
-            Log.d("joke_list", "Adding a new joke to the list: " + jokeText); //FIXME: Remove before shipping
-
-            final Joke joke = new Joke(jokeText);
-            jokeList.add(joke);
-
-            final TextView textView = new TextView(this);
-            textView.setText(joke.getText());
-
-            if (jokeList.size() % 2 == 0) {
-                textView.setBackgroundColor(Color.DKGRAY);
-                textView.setTextColor(Color.WHITE);
-            } else {
-                textView.setBackgroundColor(Color.LTGRAY);
-                textView.setTextColor(Color.BLACK);
-            }
-
-            jokeLayout.addView(textView);
-
-        }
+        jokeList.add(joke);
+        jokeListAdapter.notifyDataSetChanged();
 
     }
 }
