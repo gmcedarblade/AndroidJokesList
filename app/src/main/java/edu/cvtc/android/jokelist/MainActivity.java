@@ -46,10 +46,12 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
+        jokeListAdapter = new JokeListAdapter(this, jokeList);
+
+
         // initialize the layout
         initLayout();
 
-        jokeListAdapter = new JokeListAdapter(this, jokeList);
 
         final String[] jokes = getResources().getStringArray(R.array.jokeList);
         for (final String jokeText : jokes) {
@@ -124,10 +126,12 @@ public class MainActivity extends AppCompatActivity {
             addJoke(new Joke(jokeText));
             jokeEditText.setText("");
 
-            hideSoftKeyboard();
+
         } else {
             Toast.makeText(this, "You must enter text for new Joke...", Toast.LENGTH_SHORT).show();
         }
+
+        hideSoftKeyboard();
     }
 
     private void hideSoftKeyboard() {
