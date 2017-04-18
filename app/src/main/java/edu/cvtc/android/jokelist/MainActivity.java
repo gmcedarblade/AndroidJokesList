@@ -1,21 +1,20 @@
 package edu.cvtc.android.jokelist;
 
 import android.content.Context;
-import android.graphics.Color;
-import android.hardware.input.InputManager;
-import android.support.v4.view.ViewGroupCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.view.ActionMode;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
+import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -29,12 +28,12 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Layout container for a Joke.
      */
-    private LinearLayout jokeLayout;
+    private ListView jokeListView;
 
     /**
-     * ScrollView used to hold the Jokes in jokeList.
+     * Adapter for jokeLayout.
      */
-    private ScrollView jokeScrollView;
+    private JokeListAdapter jokeListAdapter;
 
     /**
      * EditText used to enter text for new Joke to be added to jokeList.
@@ -47,19 +46,71 @@ public class MainActivity extends AppCompatActivity {
      */
     private Button addJokeButton;
 
+    // This is the JokeView object that was long clicked...
+    private JokeView selectView;
+
+    // ActionMode and Callback for the action bar menu that presents
+    // when a user Long Clicks on a JokeView item.
+    private ActionMode actionMode;
+    private ActionMode.Callback callback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+
+            actionMode = mode;
+            final MenuInflater inflater = actionMode.getMenuInflater();
+            inflater.inflate(R.menu.menu_remove, menu);
+            return true;
+
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Don't need to do anything so leaving false...
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+
+            switch (item.getItemId()) {
+                case R.id.menu_remove:
+                    jokeList.remove(selectView.getJoke());
+                    jokeListAdapter.notifyDataSetChanged();
+                    mode.finish();
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+
+            actionMode = null;
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        jokeListAdapter = new JokeListAdapter(this, jokeList);
+
+
+        // initialize the layout
         initLayout();
+
 
         final String[] jokes = getResources().getStringArray(R.array.jokeList);
         for (final String jokeText : jokes) {
 
-            addJoke(jokeText);
+            addJoke(new Joke(jokeText));
 
         }
 
+        // initialize the event listeners
         initListeners();
 
     }
@@ -70,37 +121,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private void initLayout() {
 
-        final LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.VERTICAL);
+        setContentView(R.layout.activity_main);
 
-        final LinearLayout addJokeLayout = new LinearLayout(this);
-        addJokeLayout.setOrientation(LinearLayout.HORIZONTAL);
+        addJokeButton = (Button) findViewById(R.id.addJokeButton);
+        jokeEditText = (EditText) findViewById(R.id.jokeEditText);
 
-        addJokeButton = new Button(this);
-        addJokeButton.setText("Add Joke");
-        addJokeButton.setTextColor(Color.WHITE);
-        addJokeButton.setBackgroundColor(Color.DKGRAY);
-        addJokeLayout.addView(addJokeButton);
+        jokeListView = (ListView) findViewById(R.id.jokeListViewGroup);
 
-        // Create our LayoutParams for EditText
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        jokeEditText = new EditText(this);
-        jokeEditText.setLayoutParams(params);
-        addJokeLayout.addView(jokeEditText);
-
-        jokeLayout = new LinearLayout(this);
-        jokeLayout.setOrientation(LinearLayout.VERTICAL);
-
-        jokeScrollView = new ScrollView(this);
-        jokeScrollView.addView(jokeLayout);
-
-        container.addView(addJokeLayout);
-        container.addView(jokeScrollView);
-
-        setContentView(container);
+        jokeListView.setLongClickable(true);
+        jokeListView.setAdapter(jokeListAdapter);
 
     }
 
@@ -139,16 +168,33 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        jokeListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                selectView = (JokeView) view;
+                startSupportActionMode(callback);
+
+                return true;
+            }
+        });
     }
 
     private void addJokeFromEditText() {
 
         final String jokeText = jokeEditText.getText().toString().trim();
-        addJoke(jokeText);
-        jokeEditText.setText("");
+        
+        if (null != jokeText && !jokeText.isEmpty()) {
+            addJoke(new Joke(jokeText));
+            jokeEditText.setText("");
+
+
+        } else {
+            Toast.makeText(this, "You must enter text for new Joke...", Toast.LENGTH_SHORT).show();
+        }
 
         hideSoftKeyboard();
-        
     }
 
     private void hideSoftKeyboard() {
@@ -164,34 +210,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Method used to provide the logic for initializing a new Joke,
-     * adding it to jokeList, and displaying it on screen.
+     * Method used for encapsulating the logic necessary to properly
+     * add a new Joke to jokeList, and display it on screen.
      *
-     * @param jokeText a String containing the text of the Joke to add.
+     * @param joke The Joke to add to the list of Jokes.
      */
-    private void addJoke(final String jokeText) {
+    private void addJoke(final Joke joke) {
 
-        if (null != jokeText && !jokeText.isEmpty()) {
-
-            Log.d("joke_list", "Adding a new joke to the list: " + jokeText); //FIXME: Remove before shipping
-
-            final Joke joke = new Joke(jokeText);
-            jokeList.add(joke);
-
-            final TextView textView = new TextView(this);
-            textView.setText(joke.getText());
-
-            if (jokeList.size() % 2 == 0) {
-                textView.setBackgroundColor(Color.DKGRAY);
-                textView.setTextColor(Color.WHITE);
-            } else {
-                textView.setBackgroundColor(Color.LTGRAY);
-                textView.setTextColor(Color.BLACK);
-            }
-
-            jokeLayout.addView(textView);
-
-        }
+        jokeList.add(joke);
+        jokeListAdapter.notifyDataSetChanged();
 
     }
 }
