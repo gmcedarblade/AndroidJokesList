@@ -173,10 +173,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                view.setSelected(true);
                 selectView = (JokeView) view;
-
-                actionMode = startSupportActionMode(callback);
+                startSupportActionMode(callback);
 
                 return true;
             }
