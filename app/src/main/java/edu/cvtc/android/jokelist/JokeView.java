@@ -14,6 +14,8 @@ public class JokeView extends LinearLayout{
 
     private TextView jokeTextView;
 
+    private  Joke joke;
+
     /**
      * Basic Constructor that takes an Application Context
      * and a Joke object.
@@ -31,6 +33,12 @@ public class JokeView extends LinearLayout{
         inflater.inflate(R.layout.joke_view, this, true);
         jokeTextView = (TextView) findViewById(R.id.jokeTextView);
         jokeTextView.setText(joke.getText());
+
+        this.joke = joke;
+    }
+
+    public Joke getJoke() {
+        return joke;
     }
 
 }
