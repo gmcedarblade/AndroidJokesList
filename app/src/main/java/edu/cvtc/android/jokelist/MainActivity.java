@@ -3,9 +3,14 @@ package edu.cvtc.android.jokelist;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.view.ActionMode;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -40,6 +45,51 @@ public class MainActivity extends AppCompatActivity {
      * text entered in jokeEditText.
      */
     private Button addJokeButton;
+
+    // This is the JokeView object that was long clicked...
+    private JokeView selectView;
+
+    // ActionMode and Callback for the action bar menu that presents
+    // when a user Long Clicks on a JokeView item.
+    private ActionMode actionMode;
+    private ActionMode.Callback callback = new ActionMode.Callback() {
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+
+            actionMode = mode;
+            final MenuInflater inflater = actionMode.getMenuInflater();
+            inflater.inflate(R.menu.menu_remove, menu);
+            return true;
+
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            return false; // Don't need to do anything so leaving false...
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+
+            switch (item.getItemId()) {
+                case R.id.menu_remove:
+                    jokeList.remove(selectView.getJoke());
+                    jokeListAdapter.notifyDataSetChanged();
+                    mode.finish();
+                    break;
+                default:
+                    break;
+            }
+            return false;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+
+            actionMode = null;
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,6 +127,8 @@ public class MainActivity extends AppCompatActivity {
         jokeEditText = (EditText) findViewById(R.id.jokeEditText);
 
         jokeListView = (ListView) findViewById(R.id.jokeListViewGroup);
+
+        jokeListView.setLongClickable(true);
         jokeListView.setAdapter(jokeListAdapter);
 
     }
@@ -114,6 +166,19 @@ public class MainActivity extends AppCompatActivity {
 
                 return false;
 
+            }
+        });
+
+        jokeListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                view.setSelected(true);
+                selectView = (JokeView) view;
+
+                actionMode = startSupportActionMode(callback);
+
+                return true;
             }
         });
     }
