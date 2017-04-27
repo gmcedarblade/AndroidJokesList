@@ -1,6 +1,7 @@
 package edu.cvtc.android.jokelist;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ActionMode;
@@ -48,6 +49,11 @@ public class MainActivity extends AppCompatActivity {
 
     // This is the JokeView object that was long clicked...
     private JokeView selectView;
+
+    /**
+     * Reference variables for keys used to store and retrieve from SharedPreferences.
+     */
+    private static final String SAVED_TEXT_KEY = "jokeText";
 
     // ActionMode and Callback for the action bar menu that presents
     // when a user Long Clicks on a JokeView item.
@@ -219,6 +225,38 @@ public class MainActivity extends AppCompatActivity {
 
         jokeList.add(joke);
         jokeListAdapter.notifyDataSetChanged();
+
+    }
+
+    @Override
+    protected void onResume() {
+
+        super.onResume();
+
+        /**
+         * check SharedPreferences for saved text.
+         * ---If there is no text, use empty String.
+         */
+        final SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        jokeEditText.setText(preferences.getString(SAVED_TEXT_KEY, ""));
+
+    }
+
+    /**
+     * when the app pauses, save the text from the EditText widget.
+     */
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
+
+        /**
+         * Use SharedPreferences to save the text from jokeEditText
+         */
+        final SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+
+        preferences.edit().putString(SAVED_TEXT_KEY, jokeEditText.getText().toString()).commit();
 
     }
 }
