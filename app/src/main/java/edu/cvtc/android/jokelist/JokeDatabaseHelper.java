@@ -27,12 +27,16 @@ public class JokeDatabaseHelper extends SQLiteOpenHelper{
     }
 
     @Override
-    public void onCreate(SQLiteDatabase db) {
-        // TODO: create the database
+    public void onCreate(SQLiteDatabase database) {
+
+        JokeTable.onCreate(database);
+
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // TODO: upgrade the database
+    public void onUpgrade(SQLiteDatabase database, int oldVersion, int newVersion) {
+
+        JokeTable.onUpgrade(database, oldVersion, newVersion);
+
     }
 }
