@@ -16,6 +16,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <provider
+            android:authorities="edu.cvtc.android.jokelist.provider"
+            android:name=".JokeContentProvider"
+            android:exported="false" /> <!-- android:exported set to false to ensure other apps cannot use our provider -->
+
     </application>
 
 </manifest>
