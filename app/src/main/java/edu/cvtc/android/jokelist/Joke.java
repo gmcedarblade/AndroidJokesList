@@ -12,6 +12,7 @@ public class Joke {
     public static final int UNRATED = 0;
     public static final int LIKE = 1;
     public static final int DISLIKE = 2;
+    public static final int SHOW_ALL = 3; // This value is for our filter
 
     private String text;
     private int rating;
