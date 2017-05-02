@@ -46,6 +46,8 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
         likeButton = (RadioButton) findViewById(R.id.likeButton);
         dislikeButton = (RadioButton) findViewById(R.id.dislikeButton);
 
+        ratingRadioGroup.setOnCheckedChangeListener(this);
+
         setJoke(joke);
     }
 
@@ -83,6 +85,8 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
         switch (checkedId) {
             case R.id.likeButton:
                 joke.setRating(Joke.LIKE);
+                break;
+            //FIXME: set rating dislike and set rating for default switch case to unrated
         }
 
     }
