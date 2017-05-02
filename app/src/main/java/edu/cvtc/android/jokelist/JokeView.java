@@ -23,6 +23,8 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
     private RadioButton likeButton;
     private RadioButton dislikeButton;
 
+    private OnJokeChangeListener onJokeChangeListener;
+
     /**
      * Basic Constructor that takes an Application Context
      * and a Joke object.
@@ -38,14 +40,41 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
 
         final LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         inflater.inflate(R.layout.joke_view, this, true);
-        jokeTextView = (TextView) findViewById(R.id.jokeTextView);
-        jokeTextView.setText(joke.getText());
 
-        this.joke = joke;
+        jokeTextView = (TextView) findViewById(R.id.jokeTextView);
+        ratingRadioGroup = (RadioGroup) findViewById(R.id.ratingRadioGroup);
+        likeButton = (RadioButton) findViewById(R.id.likeButton);
+        dislikeButton = (RadioButton) findViewById(R.id.dislikeButton);
+
+        setJoke(joke);
     }
 
     public Joke getJoke() {
         return joke;
+    }
+
+    public void setJoke(final Joke joke) {
+
+        this.joke = joke;
+
+        jokeTextView.setText(joke.getText());
+
+        switch (joke.getRating()) {
+
+            case Joke.LIKE:
+                likeButton.setChecked(true);
+                break;
+            case Joke.DISLIKE:
+                dislikeButton.setChecked(true);
+                break;
+            default:
+                ratingRadioGroup.clearCheck();
+                break;
+
+        }
+
+        requestLayout();
+
     }
 
     @Override
@@ -58,7 +87,7 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
 
     }
 
-    public static interface OnJokeChangeListener {
-        public void onJokeChanged(JokeView view, Joke joke);
+    public interface OnJokeChangeListener {
+        void onJokeChanged(JokeView view, Joke joke);
     }
 }
