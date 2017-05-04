@@ -1,8 +1,14 @@
 package edu.cvtc.android.jokelist;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.PersistableBundle;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.view.ActionMode;
@@ -18,24 +24,21 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-
-public class MainActivity extends AppCompatActivity {
-
-    /**
-     * Data Structure for the List of Joke object the Activity will present to the user.
-     */
-    private ArrayList<Joke> jokeList = new ArrayList<>();
+public class MainActivity extends AppCompatActivity implements JokeView.OnJokeChangeListener, LoaderManager.LoaderCallbacks<Cursor> {
 
     /**
      * Layout container for a Joke.
      */
     private ListView jokeListView;
 
+    private JokeCursorAdapter jokeCursorAdapter;
+
+    private static final int LOADER_ID = 1;
+
     /**
-     * Adapter for jokeLayout.
+     * Value for the filter to use for displaying Jokes.
      */
-    private JokeListAdapter jokeListAdapter;
+    private int filter;
 
     /**
      * EditText used to enter text for new Joke to be added to jokeList.
@@ -80,8 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
             switch (item.getItemId()) {
                 case R.id.menu_remove:
-                    jokeList.remove(selectView.getJoke());
-                    jokeListAdapter.notifyDataSetChanged();
+                    //FIXME: Use the ContentProvider to remove the Joke and reloadData.
                     mode.finish();
                     break;
                 default:
@@ -103,23 +105,16 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-        jokeListAdapter = new JokeListAdapter(this, jokeList);
+        jokeCursorAdapter = new JokeCursorAdapter(this, null, 0);
 
 
         // initialize the layout
         initLayout();
 
-
-        final String[] jokes = getResources().getStringArray(R.array.jokeList);
-        for (final String jokeText : jokes) {
-
-            addJoke(new Joke(jokeText));
-
-        }
-
         // initialize the event listeners
         initListeners();
 
+        getSupportLoaderManager().initLoader(LOADER_ID, null, this);
     }
 
     /**
@@ -136,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         jokeListView = (ListView) findViewById(R.id.jokeListViewGroup);
 
         jokeListView.setLongClickable(true);
-        jokeListView.setAdapter(jokeListAdapter);
+        jokeListView.setAdapter(jokeCursorAdapter);
 
     }
 
@@ -224,9 +219,19 @@ public class MainActivity extends AppCompatActivity {
      */
     private void addJoke(final Joke joke) {
 
-        jokeList.add(joke);
-        jokeListAdapter.notifyDataSetChanged();
+        final ContentValues contentValues = setUpContentValues(joke);
 
+    //--- Notes:---
+//        jokeList.add(joke);
+//        jokeListAdapter.notifyDataSetChanged();
+
+        Uri uri = Uri.parse(JokeContentProvider.CONTENT_URI + "/joke/" + joke.getId());
+        uri = getContentResolver().insert(uri, contentValues);
+
+        long id = Long.parseLong(uri.getLastPathSegment());
+        joke.setId(id);
+
+        reloadData();
     }
 
     @Override
@@ -238,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
          * check SharedPreferences for saved text.
          * ---If there is no text, use empty String.
          */
+        //---Notes:----
 //        final SharedPreferences preferences = getPreferences(MODE_PRIVATE);
 //        jokeEditText.setText(preferences.getString(SAVED_TEXT_KEY, ""));
 
@@ -262,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Saving instane state
+     * Saving instance state
      */
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -280,5 +286,58 @@ public class MainActivity extends AppCompatActivity {
 
         final String jokeText = savedInstanceState.getString(SAVED_TEXT_KEY, "");
         jokeEditText.setText(jokeText);
+    }
+
+    @Override
+    public void onJokeChanged(JokeView view, Joke joke) {
+
+        //FIXME: Tell the database to update using the ContentProvider with contentValues
+        //FIXME: Reload the data for our cursor.
+
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        final String[] projection = { JokeTable.KEY_ID, JokeTable.KEY_TEXT, JokeTable.KEY_RATING };
+
+        final Uri uri = Uri.parse(JokeContentProvider.CONTENT_URI + "/filter/" + filter);
+
+        final CursorLoader cursorLoader = new CursorLoader(this, uri, projection, null, null, null);
+
+        return cursorLoader;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+        jokeCursorAdapter.swapCursor(data);
+        jokeCursorAdapter.setOnJokeChangeListener(this);
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
+        jokeCursorAdapter.swapCursor(null);
+
+    }
+
+    private void reloadData() {
+        getSupportLoaderManager().restartLoader(LOADER_ID, null, this);
+    }
+
+    /**
+     * Set up the content values used to insert and update Jokes.
+     */
+    private ContentValues setUpContentValues(final Joke joke) {
+
+        final ContentValues contentValues = new ContentValues();
+
+        contentValues.put(JokeTable.KEY_TEXT, joke.getText());
+        contentValues.put(JokeTable.KEY_RATING, joke.getRating());
+        contentValues.put(JokeTable.KEY_ID, joke.getId());
+        return contentValues;
+
     }
 }

@@ -16,6 +16,7 @@ public class Joke {
 
     private String text;
     private int rating;
+    private long id;
 
     public Joke() {
 
@@ -38,6 +39,18 @@ public class Joke {
 
     }
 
+
+    /**
+     * Constructor for the CursorAdapter
+     */
+    public Joke(final String text, final int rating, final long id) {
+
+        this.text = text;
+        this.rating = rating;
+        this.id = id;
+
+    }
+
     public String getText() {
         return text;
     }
@@ -54,6 +67,10 @@ public class Joke {
         this.rating = rating;
     }
 
+    public long getId(){ return id; }
+
+    public void setId(final long id) { this.id = id; }
+
     /**
      *
      * @return a String containing only the text of the Joke.
@@ -63,8 +80,14 @@ public class Joke {
         return getText();
     }
 
+    /**
+     * An Object is equal to this Joke, if the object is a Joke, and
+     * its id is the same as this Joke's id.
+     * @return
+     */
     @Override
     public boolean equals(Object object) {
+        //Notes:
 //        if (this == object) return true;
 //        if (object == null || getClass() != object.getClass()) return false;
 //
@@ -73,7 +96,7 @@ public class Joke {
 //        return text != null ? text.equals(joke.text) : joke.text == null;
 
         return object instanceof Joke
-                && ((Joke) object).getText().equals(text);
+                && ((Joke) object).getId() == id;
 
     }
 }

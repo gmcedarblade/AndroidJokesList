@@ -79,6 +79,12 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
 
     }
 
+    public void setOnJokeChangeListener(final OnJokeChangeListener onJokeChangeListener) {
+
+        this.onJokeChangeListener = onJokeChangeListener;
+
+    }
+
     @Override
     public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
 
@@ -86,7 +92,12 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
             case R.id.likeButton:
                 joke.setRating(Joke.LIKE);
                 break;
-            //FIXME: set rating dislike and set rating for default switch case to unrated
+            case R.id.dislikeButton:
+                joke.setRating(Joke.DISLIKE);
+                break;
+            default:
+                joke.setRating(Joke.UNRATED);
+                break;
         }
 
     }

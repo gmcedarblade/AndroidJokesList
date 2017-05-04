@@ -111,7 +111,7 @@ public class JokeContentProvider extends ContentProvider {
 
     /**
      * Inserts a new joke into joke_table given a specific Uri and
-     * the valuse of the joke. It will insert a new row into the table
+     * the values of the joke. It will insert a new row into the table
      * filled with that joke's data and will give the joke a new _id,
      * then returns a Uri containing the _id of the newly inserted joke.
      *
