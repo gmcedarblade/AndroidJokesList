@@ -187,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
 
         final String jokeText = jokeEditText.getText().toString().trim();
         
-        if (null != jokeText && !jokeText.isEmpty()) {
+        if (jokeText != null && !jokeText.isEmpty()) {
             addJoke(new Joke(jokeText));
             jokeEditText.setText("");
 
@@ -220,10 +220,6 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
     private void addJoke(final Joke joke) {
 
         final ContentValues contentValues = setUpContentValues(joke);
-
-    //--- Notes:---
-//        jokeList.add(joke);
-//        jokeListAdapter.notifyDataSetChanged();
 
         Uri uri = Uri.parse(JokeContentProvider.CONTENT_URI + "/joke/" + joke.getId());
         uri = getContentResolver().insert(uri, contentValues);

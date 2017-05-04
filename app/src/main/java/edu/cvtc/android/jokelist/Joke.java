@@ -83,7 +83,6 @@ public class Joke {
     /**
      * An Object is equal to this Joke, if the object is a Joke, and
      * its id is the same as this Joke's id.
-     * @return
      */
     @Override
     public boolean equals(Object object) {
@@ -95,8 +94,8 @@ public class Joke {
 //
 //        return text != null ? text.equals(joke.text) : joke.text == null;
 
-        return object instanceof Joke
-                && ((Joke) object).getId() == id;
+        return (object instanceof Joke)
+                && (((Joke) object).getId() == id);
 
     }
 }
