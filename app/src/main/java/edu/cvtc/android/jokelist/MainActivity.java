@@ -81,7 +81,6 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
 
             switch (item.getItemId()) {
                 case R.id.menu_remove:
-                    //FIXME: Use the ContentProvider to remove the Joke and reloadData.
                     final Uri uri = Uri.parse(JokeContentProvider.CONTENT_URI + "/joke/" + selectedView.getJoke().getId());
                     getContentResolver().delete(uri, null, null);
                     reloadData();
@@ -288,8 +287,11 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
     @Override
     public void onJokeChanged(JokeView view, Joke joke) {
 
-        //FIXME: Tell the database to update using the ContentProvider with contentValues
-        //FIXME: Reload the data for our cursor.
+
+        final Uri uri = Uri.parse(JokeContentProvider.CONTENT_URI + "/joke/" + joke.getId());
+        getContentResolver().update(uri, setUpContentValues(joke), null, null);
+
+        reloadData();
 
     }
 
@@ -333,7 +335,7 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
 
         contentValues.put(JokeTable.KEY_TEXT, joke.getText());
         contentValues.put(JokeTable.KEY_RATING, joke.getRating());
-        
+
         return contentValues;
 
     }
