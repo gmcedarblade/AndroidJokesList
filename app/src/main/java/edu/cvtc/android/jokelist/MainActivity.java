@@ -2,10 +2,8 @@ package edu.cvtc.android.jokelist;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.PersistableBundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
@@ -52,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
     private Button addJokeButton;
 
     // This is the JokeView object that was long clicked...
-    private JokeView selectView;
+    private JokeView selectedView;
 
     /**
      * Reference variables for keys used to store and retrieve from SharedPreferences.
@@ -84,6 +82,9 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
             switch (item.getItemId()) {
                 case R.id.menu_remove:
                     //FIXME: Use the ContentProvider to remove the Joke and reloadData.
+                    final Uri uri = Uri.parse(JokeContentProvider.CONTENT_URI + "/joke/" + selectedView.getJoke().getId());
+                    getContentResolver().delete(uri, null, null);
+                    reloadData();
                     mode.finish();
                     break;
                 default:
@@ -175,7 +176,7 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
 
-                selectView = (JokeView) view;
+                selectedView = (JokeView) view;
                 startSupportActionMode(callback);
 
                 return true;
@@ -332,7 +333,7 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
 
         contentValues.put(JokeTable.KEY_TEXT, joke.getText());
         contentValues.put(JokeTable.KEY_RATING, joke.getRating());
-        contentValues.put(JokeTable.KEY_ID, joke.getId());
+        
         return contentValues;
 
     }
