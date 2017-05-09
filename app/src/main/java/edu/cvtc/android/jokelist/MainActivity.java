@@ -2,6 +2,7 @@ package edu.cvtc.android.jokelist;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.support.v4.app.LoaderManager;
@@ -35,8 +36,9 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
 
     /**
      * Value for the filter to use for displaying Jokes.
+     * Default value is to show all.
      */
-    private int filter;
+    private int filter = Joke.SHOW_ALL;;
 
     /**
      * EditText used to enter text for new Joke to be added to jokeList.
@@ -52,10 +54,14 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
     // This is the JokeView object that was long clicked...
     private JokeView selectedView;
 
+    // This is the options menu
+    private Menu filterMenu;
+
     /**
      * Reference variables for keys used to store and retrieve from SharedPreferences.
      */
     private static final String SAVED_TEXT_KEY = "jokeText";
+    private static final String SAVED_FILTER_KEY = "filter";
 
     // ActionMode and Callback for the action bar menu that presents
     // when a user Long Clicks on a JokeView item.
@@ -115,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
         initListeners();
 
         getSupportLoaderManager().initLoader(LOADER_ID, null, this);
+
     }
 
     /**
@@ -231,6 +238,82 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        filterMenu = menu;
+
+        final MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_filter, filterMenu);
+
+        return true;
+
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+
+        menu.getItem(0).setTitle(getMenuTitleChange());
+        return super.onPrepareOptionsMenu(menu);
+
+    }
+
+    private String getMenuTitleChange() {
+
+        switch (filter) {
+
+            case Joke.LIKE:
+                return getResources().getString(R.string.like);
+            case Joke.DISLIKE:
+                return getResources().getString(R.string.dislike);
+            case Joke.UNRATED:
+                return getResources().getString(R.string.unrated);
+            default:
+                return getResources().getString(R.string.show_all);
+
+        }
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+
+            case R.id.submenu_like:
+                filter(Joke.LIKE);
+                return true;
+            case R.id.submenu_dislike:
+                filter(Joke.DISLIKE);
+                return true;
+            case R.id.submenu_unrated:
+                filter(Joke.UNRATED);
+                return true;
+            case R.id.submenu_show_all:
+                filter(Joke.SHOW_ALL);
+                return true;
+            case R.id.menu_filter:
+                default:
+                    return super.onOptionsItemSelected(item);
+
+        }
+
+    }
+
+    private void filter(int filterType) {
+
+        filter = filterType;
+
+        if (filterMenu != null) {
+
+            filterMenu.getItem(0).setTitle(getMenuTitleChange());
+
+        }
+
+        reloadData();
+
+    }
+
+    @Override
     protected void onResume() {
 
         super.onResume();
@@ -242,6 +325,10 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
         //---Notes:----
 //        final SharedPreferences preferences = getPreferences(MODE_PRIVATE);
 //        jokeEditText.setText(preferences.getString(SAVED_TEXT_KEY, ""));
+        final SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        filter = preferences.getInt(SAVED_FILTER_KEY, Joke.SHOW_ALL);
+
+        reloadData();
 
     }
 
@@ -261,6 +348,9 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
 //
 //        preferences.edit().putString(SAVED_TEXT_KEY, jokeEditText.getText().toString()).commit();
 
+        final SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        preferences.edit().putInt(SAVED_FILTER_KEY, filter).commit();
+
     }
 
     /**
@@ -271,6 +361,7 @@ public class MainActivity extends AppCompatActivity implements JokeView.OnJokeCh
         super.onSaveInstanceState(outState);
 
         outState.putString(SAVED_TEXT_KEY, jokeEditText.getText().toString());
+
     }
 
     /**

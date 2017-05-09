@@ -91,13 +91,26 @@ public class JokeView extends LinearLayout implements RadioGroup.OnCheckedChange
         switch (checkedId) {
             case R.id.likeButton:
                 joke.setRating(Joke.LIKE);
+                notifyOnJokeChangeListener();
                 break;
             case R.id.dislikeButton:
                 joke.setRating(Joke.DISLIKE);
+                notifyOnJokeChangeListener();
                 break;
             default:
                 joke.setRating(Joke.UNRATED);
+                notifyOnJokeChangeListener();
                 break;
+        }
+
+    }
+
+    private void notifyOnJokeChangeListener() {
+
+        if (onJokeChangeListener != null) {
+
+            onJokeChangeListener.onJokeChanged(this, joke);
+
         }
 
     }
